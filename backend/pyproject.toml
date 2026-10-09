@@ -1,0 +1,14 @@
+[project]
+name = "politica-back"
+version = "0.1.0"
+description = "Backend para o portal de pedagogia politica brasileira"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "django>=5.0",
+    "djangorestframework>=3.14.0",  # Para criar a API que o React vai consumir
+    "django-cors-headers>=4.0.0",   # Necessário para liberar o acesso do Frontend
+    "psycopg[binary]>=3.1.0",       # Driver do PostgreSQL
+    "requests>=2.31.0",             # Para o seu futuro script de ETL / APIs externas
+    "beautifulsoup4>=4.12.0",       # Para o seu futuro Webscraping do STF/Planalto
+]
