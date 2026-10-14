@@ -1,0 +1,59 @@
+[
+    {
+        "model": "politics.poder",
+        "pk": 1,
+        "fields": {
+            "nome": "EXECUTIVO",
+            "descricao_pedagogica": "Poder responsável por administrar o Estado, aplicar as leis vigentes e propor políticas públicas. É chefiado pelo Presidente da República no âmbito Federal."
+        }
+    },
+    {
+        "model": "politics.poder",
+        "pk": 2,
+        "fields": {
+            "nome": "LEGISLATIVO",
+            "descricao_pedagogica": "Poder encarregado de criar, alterar e revogar leis, além de fiscalizar as ações do Poder Executivo. No âmbito federal, é composto pelo Congresso Nacional (Câmara e Senado)."
+        }
+    },
+    {
+        "model": "politics.poder",
+        "pk": 3,
+        "fields": {
+            "nome": "JUDICIARIO",
+            "descricao_pedagogica": "Poder com a função constitucional de julgar conflitos, aplicar as leis de forma justa e garantir o cumprimento o cumprimento dos direitos e garantias estabelecidos na Constituição Federal."
+        }
+    },
+    {
+        "model": "politics.instituicao",
+        "pk": 1,
+        "fields": {
+            "poder": 1,
+            "nome": "Presidência da República",
+            "sigla": "PR",
+            "descricao_pedagogica": "Órgão central do Poder Executivo Federal. Onde o Presidente e seus Ministros de Estado tomam decisões sobre rumos do país, decretos e gestão de ministérios.",
+            "site_oficial": "https://www.gov.br"
+        }
+    },
+    {
+        "model": "politics.instituicao",
+        "pk": 3,
+        "fields": {
+            "poder": 2,
+            "nome": "Câmara dos Deputados",
+            "sigla": "CD",
+            "descricao_pedagogica": "Representa o povo brasileiro. É composta por 513 deputados federais focados em propor leis e debater as demandas da população civil.",
+            "site_oficial": "https://camara.leg.br"
+        }
+    },
+    {
+        "model": "politics.instituicao",
+        "pk": 4,
+        "fields": {
+            "poder": 3,
+            "nome": "Supremo Tribunal Federal",
+            "sigla": "STF",
+            "descricao_pedagogica": "A mais alta corte jurídica do país. Funciona como o 'guardião da Constituição', julgando se as leis aprovadas ferem ou respeitam o texto constitucional brasileiro.",
+            "site_oficial": "https://stf.jus.br"
+        }
+    }
+]
