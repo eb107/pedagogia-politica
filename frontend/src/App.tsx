@@ -78,7 +78,7 @@ function App() {
             Portal de Pedagogia Política
           </h1>
           <p className="mt-2 text-base text-slate-600 max-w-2xl mx-auto">
-            Explore a árvore constitucional do Brasil. Clique nas instituições para abrir os galhos e visualizar os agentes políticos em exercício [3.4]
+            Explore a árvore constitucional do Brasil. Clique nas instituições para abrir os galhos e visualizar os agentes políticos em exercício!
           </p>
         </div>
       </header>
