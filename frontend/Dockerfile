@@ -5,8 +5,8 @@ WORKDIR /app
 # Copia apenas o manifesto para aproveitar o cache de camadas do Docker
 COPY package.json ./
 
-# Instala as dependências baixando os binários nativos corretos para Linux
-RUN npm install --supportedCpu=x64 --supportedOS=linux
+# Força o npm a aceitar os peer dependencies do React 19 com o Framer Motion
+RUN npm install --supportedCpu=x64 --supportedOS=linux --legacy-peer-deps
 
 COPY . .
 
