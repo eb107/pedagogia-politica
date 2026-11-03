@@ -19,6 +19,7 @@ const PODERES_META: Record<
     tagText: string;
     lineAccent: string;
     label: string;
+    bgImage: string;
   }
 > = {
   EXECUTIVO: {
@@ -27,7 +28,8 @@ const PODERES_META: Record<
     tagBg: 'bg-sky-500/10',
     tagText: 'text-sky-300',
     lineAccent: 'from-sky-500 to-blue-600',
-    label: 'Administra & Executa',
+    label: 'Administra e Executa',
+    bgImage: '/images/monumentos_tres_poderes/palacio_do_planalto.jpg',
   },
   LEGISLATIVO: {
     cor: '#34d399', // emerald-400
@@ -35,7 +37,8 @@ const PODERES_META: Record<
     tagBg: 'bg-emerald-500/10',
     tagText: 'text-emerald-300',
     lineAccent: 'from-emerald-500 to-teal-600',
-    label: 'Cria & Fiscaliza',
+    label: 'Cria e Fiscaliza',
+    bgImage: '/images/monumentos_tres_poderes/congresso_nacional.jpg',
   },
   JUDICIARIO: {
     cor: '#fbbf24', // amber-400
@@ -43,7 +46,8 @@ const PODERES_META: Record<
     tagBg: 'bg-amber-500/10',
     tagText: 'text-amber-300',
     lineAccent: 'from-amber-500 to-orange-600',
-    label: 'Julga & Garante a CF',
+    label: 'Julga & Garante a Constituição Federal',
+    bgImage: '/images/monumentos_tres_poderes/estatua_a_justica.jpg',
   },
 };
 
@@ -384,7 +388,7 @@ function App() {
                   stiffness: 260,
                   damping: 26,
                 }}
-                className={`absolute w-full max-w-[500px] h-[580px] rounded-3xl border transition-colors duration-300 flex flex-col justify-between p-6 md:p-7 ${
+                className={`absolute w-full max-w-[500px] h-[580px] rounded-3xl border transition-colors duration-300 flex flex-col justify-between p-6 md:p-7 overflow-hidden ${
                   isCenter
                     ? 'border-white/[0.14] bg-[#11131a] shadow-[0_20px_50px_rgba(0,0,0,0.85)] cursor-default'
                     : 'border-white/[0.06] bg-[#0d0e14] shadow-[0_10px_30px_rgba(0,0,0,0.6)] cursor-pointer hover:border-white/10'
@@ -393,6 +397,12 @@ function App() {
                   transformPerspective: 1000,
                 }}
               >
+                {/* - Imagem de fundo do poder com máscara gradiente - */}
+                <div className='absolute inset-0 pointer-events-none select-none z-0'>
+                  <img src={meta.bgImage} alt='' role='presentation' className={`w-full h-full object-cover object-center contrast-125 transition-opacity duration-500 ${isCenter ? 'opacity-45' : 'opacity-20'}`}/>
+                  <div className='absolute inset-0 bg-gradient-to-t from-[#11131a] via-[#11131a]/80 to-transparent'/>
+                </div>
+
                 {/* Linha discreta de acento de cor no topo do card (substitui o brilho excessivo) */}
                 <div
                   className="absolute top-0 left-8 right-8 h-[2px] rounded-full"
@@ -400,7 +410,7 @@ function App() {
                 />
 
                 {/* ── PARTE SUPERIOR DO CARD: TÍTULO DO PODER ── */}
-                <div>
+                <div className='relative z-10'>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-mono font-semibold tracking-wider text-white/30 uppercase">
@@ -431,7 +441,7 @@ function App() {
                 </div>
 
                 {/* ── PARTE INTERMEDIÁRIA: ÓRGÃOS DO PODER ── */}
-                <div className="my-4 flex-1 flex flex-col min-h-0">
+                <div className="my-4 flex-1 flex flex-col min-h-0 relative z-10">
                   <div className="flex items-center justify-between pb-2 border-b border-white/[0.06] mb-3">
                     <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">
                       Órgãos Constitucionais
@@ -468,7 +478,7 @@ function App() {
 
                   {/* Visão do Órgão Selecionado e seus Atores */}
                   {instituicaoAtiva && (
-                    <div className="flex-1 rounded-2xl bg-black/30 border border-white/[0.05] p-3.5 flex flex-col min-h-0 overflow-hidden">
+                    <div className="flex-1 rounded-2xl bg-black/40 backdrop-blur-md border border-white/[0.08] p-3.5 flex flex-col min-h-0 overflow-hidden">
                       <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/[0.04]">
                         <div>
                           <h4 className="text-xs font-bold text-white/90 leading-tight">
@@ -546,7 +556,7 @@ function App() {
                 </div>
 
                 {/* ── RODAPÉ DO CARD ── */}
-                <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-white/30 font-light">
+                <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-white/30 font-light relative z-10">
                   <span>Constituição de 1988</span>
                   {isCenter ? (
                     <span className="text-white/60 font-medium">Poder em Foco</span>
