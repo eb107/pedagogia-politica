@@ -229,359 +229,292 @@ function App() {
       </header>
 
       {/* ── CONTEÚDO PRINCIPAL ─────────────────────────────── */}
-      <main className="relative max-w-6xl mx-auto px-4 md:px-6 pt-24 pb-16">
-        {/* Título & Descrição Superior */}
-        <div className="text-center mb-8">
-          <p className="text-[10px] font-bold tracking-[0.25em] text-white/30 uppercase mb-1.5">
-            Organização dos Três Poderes
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Poderes Constitucionais da República
-          </h2>
-          <p className="text-xs text-white/40 font-light mt-1.5 max-w-md mx-auto">
-            O Executivo sobrepõe o Legislativo, que sobrepõe o Judiciário. Arraste, use as setas ou clique no card para trazer à frente.
-          </p>
-        </div>
+      <main className="relative max-w-7xl mx-auto px-4 md:px-6 pt-24 pb-16">
+        <div className='flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16'>
+          {/* Título & Descrição Superior */}
+          <div className="w-full lg:w-1/2 text-center lg:text-left order-1 lg:order-2">
+            <p className="text-[10px] font-bold tracking-[0.25em] text-white/30 uppercase mb-1.5">
+              Organização dos Três Poderes
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Poderes Constitucionais da República
+            </h2>
+            <p className="text-xs text-white/40 font-light mt-1.5 max-w-lg lg:mx-0 mx-auto">
+              O Executivo sobrepõe o Legislativo, que sobrepõe o Judiciário. Arraste, use as setas ou clique no card para trazer à frente.
+            </p>
+          </div>
 
-        {/* ── CONTROLES DO CARROSSEL DE PODERES ────────────────── */}
-        <div className="flex items-center justify-between max-w-xl mx-auto mb-6 px-2">
-          {/* Navegação por Pílulas Segmentadas */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-neutral-900/90 border border-white/[0.07]">
+
+
+          {/* ── STAGE DO CARROSSEL: CARDS DOS 3 PODERES SOBREPOSTOS ── */}
+          <div
+            ref={carouselRef}
+            className="relative w-full lg:w-1/2 h-[640px] flex items-center justify-center overflow-visible select-none order-2 lg:order-1"
+          >
             {poderesFiltrados.map((poder, idx) => {
-              const isSelected = activeIndex === idx;
               const meta = PODERES_META[poder.nome] || PODERES_META.EXECUTIVO;
 
+              // Cálculo do offset em relação ao card ativo
+              // Offset: 0 = ativo (frente)
+              // Offset > 0: atrás à direita
+              // Offset < 0: atrás à esquerda
+              const offset = idx - activeIndex;
+              const isCenter = offset === 0;
+
+              // Configuração física de sobreposição (Executivo sobrepõe Legislativo sobrepõe Judiciário)
+              // Se o usuário clica em um card qualquer, ele vem à frente com zIndex 30
+              let xOffset = 0;
+              let scale = 1;
+              let zIndex = 30;
+              let opacity = 1;
+              let rotateY = 0;
+
+              if (offset === 0) {
+                xOffset = 0;
+                scale = 1;
+                zIndex = 30;
+                opacity = 1;
+                rotateY = 0;
+              } else if (offset === 1 || (activeIndex === 2 && idx === 0)) {
+                // Card imediatamente à direita/atrás
+                xOffset = 45;
+                scale = 0.94;
+                zIndex = 20;
+                opacity = 0.65;
+                rotateY = -2;
+              } else if (offset === 2) {
+                // Terceiro card mais ao fundo à direita
+                xOffset = 85;
+                scale = 0.88;
+                zIndex = 10;
+                opacity = 0.45;
+                rotateY = -4;
+              } else if (offset === -1 || (activeIndex === 0 && idx === 2)) {
+                // Card imediatamente à esquerda/atrás
+                xOffset = -45;
+                scale = 0.94;
+                zIndex = 20;
+                opacity = 0.65;
+                rotateY = 2;
+              } else if (offset === -2) {
+                // Terceiro card mais ao fundo à esquerda
+                xOffset = -85;
+                scale = 0.88;
+                zIndex = 10;
+                opacity = 0.45;
+                rotateY = 4;
+              }
+
+              // Conta total de membros neste poder
+              const totalMembros = poder.instituicoes.reduce((acc, i) => acc + i.agentes.length, 0);
+
+              // Instituição atualmente selecionada no card do poder ativo
+              const instituicaoAtiva =
+                poder.instituicoes.find((i) => i.id === instituicaoSelecionada) || poder.instituicoes[0];
+
               return (
-                <button
+                <motion.div
                   key={poder.id}
-                  type="button"
                   onClick={() => mudarPoder(idx)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? 'bg-white/10 text-white shadow-sm border border-white/10'
-                      : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'
-                  }`}
+                  drag={isCenter ? 'x' : false}
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x < -40) handleNext();
+                    if (info.offset.x > 40) handlePrev();
+                  }}
+                  animate={{
+                    x: xOffset,
+                    scale,
+                    zIndex,
+                    opacity,
+                    rotateY,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 260,
+                    damping: 26,
+                  }}
+                  className={`absolute w-full max-w-[440px] h-[580px] rounded-3xl border transition-colors duration-300 flex flex-col justify-between p-6 md:p-7 overflow-hidden ${isCenter
+                      ? 'border-white/[0.14] bg-[#11131a] shadow-[0_20px_50px_rgba(0,0,0,0.85)] cursor-default'
+                      : 'border-white/[0.06] bg-[#0d0e14] shadow-[0_10px_30px_rgba(0,0,0,0.6)] cursor-pointer hover:border-white/10'
+                    }`}
+                  style={{
+                    transformPerspective: 1000,
+                  }}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: meta.cor }}
-                    />
-                    {poder.nome}
-                  </span>
-                </button>
+                  {/* - Imagem de fundo do poder com máscara gradiente - */}
+                  <div className='absolute inset-0 pointer-events-none select-none z-0'>
+                    <img src={meta.bgImage} alt='' role='presentation' className={`w-full h-full object-cover object-center contrast-125 transition-opacity duration-500 ${isCenter ? 'opacity-45' : 'opacity-20'}`} />
+                    <div className='absolute inset-0 bg-gradient-to-t from-[#11131a] via-[#11131a]/80 to-transparent' />
+                  </div>
+
+                  {/* Linha discreta de acento de cor no topo do card (substitui o brilho excessivo) */}
+                  <div
+                    className="absolute top-0 left-8 right-8 h-[2px] rounded-full"
+                    style={{ backgroundColor: meta.cor, opacity: isCenter ? 0.7 : 0.25 }}
+                  />
+
+                  {/* ── PARTE SUPERIOR DO CARD: TÍTULO DO PODER ── */}
+                  <div className='relative z-10'>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono font-semibold tracking-wider text-white/30 uppercase">
+                          0{idx + 1} / 03
+                        </span>
+                        <span className="text-white/20">•</span>
+                        <span
+                          className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${meta.tagBorder} ${meta.tagBg} ${meta.tagText}`}
+                        >
+                          {meta.label}
+                        </span>
+                      </div>
+
+                      <span className="text-[10px] font-mono text-white/30">
+                        {totalMembros} membros
+                      </span>
+                    </div>
+
+                    {/* Nome do Poder com cor discreta */}
+                    <h3 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                      {poder.nome}
+                    </h3>
+
+                    {/* Descrição pedagógica clara e legível */}
+                    <p className="text-xs text-white/50 leading-relaxed font-light mt-2 line-clamp-3">
+                      {poder.descricao_pedagogica}
+                    </p>
+                  </div>
+
+                  {/* ── PARTE INTERMEDIÁRIA: ÓRGÃOS DO PODER ── */}
+                  <div className="my-4 flex-1 flex flex-col min-h-0 relative z-10">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/[0.06] mb-3">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">
+                        Órgãos Constitucionais
+                      </span>
+                      <span className="text-[10px] text-white/30 font-mono">
+                        {poder.instituicoes.length} órgãos
+                      </span>
+                    </div>
+
+                    {/* Lista de Órgãos em formato de pílulas/tabs */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {poder.instituicoes.map((inst) => {
+                        const isInstActive = instituicaoAtiva?.id === inst.id;
+                        return (
+                          <button
+                            key={inst.id}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInstituicaoSelecionada(inst.id);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${isInstActive
+                                ? 'border-white/20 bg-white/10 text-white font-semibold'
+                                : 'border-white/5 bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/10'
+                              }`}
+                          >
+                            <span className="text-[10px] font-bold">{inst.sigla}</span>
+                            <span className="text-[9px] opacity-40 font-mono">({inst.agentes.length})</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Visão do Órgão Selecionado e seus Atores */}
+                    {instituicaoAtiva && (
+                      <div className="flex-1 rounded-2xl bg-black/40 backdrop-blur-md border border-white/[0.08] p-3.5 flex flex-col min-h-0 overflow-hidden">
+                        <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/[0.04]">
+                          <div>
+                            <h4 className="text-xs font-bold text-white/90 leading-tight">
+                              {instituicaoAtiva.nome}
+                            </h4>
+                            <p className="text-[10px] text-white/40 line-clamp-1 mt-0.5">
+                              {instituicaoAtiva.descricao_pedagogica}
+                            </p>
+                          </div>
+                          {instituicaoAtiva.site_oficial && (
+                            <a
+                              href={instituicaoAtiva.site_oficial}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[9px] text-white/30 hover:text-white/70 underline underline-offset-2 shrink-0 ml-2"
+                            >
+                              Site
+                            </a>
+                          )}
+                        </div>
+
+                        {/* Lista de Atores Políticos do Órgão */}
+                        <div className="flex-1 overflow-y-auto pr-1 space-y-1.5">
+                          {instituicaoAtiva.agentes.length === 0 ? (
+                            <p className="text-[10px] text-white/30 italic text-center py-4">
+                              Nenhum agente para os filtros ativos.
+                            </p>
+                          ) : (
+                            instituicaoAtiva.agentes.map((agente) => {
+                              const fotoUrl = formatarFotoUrl(agente.foto_url);
+                              return (
+                                <div
+                                  key={agente.id}
+                                  className="flex items-center justify-between gap-2.5 p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    {fotoUrl ? (
+                                      <img
+                                        src={fotoUrl}
+                                        alt={agente.nome_completo}
+                                        className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <div
+                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                                        style={{ backgroundColor: `${meta.cor}33` }}
+                                      >
+                                        {agente.nome_completo.charAt(0)}
+                                      </div>
+                                    )}
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-semibold text-white/90 truncate leading-tight">
+                                        {agente.nome_eleitoral || agente.nome_completo}
+                                      </p>
+                                      <p className="text-[10px] text-white/35 truncate">
+                                        {agente.cargo}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="shrink-0 text-right">
+                                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/5 text-white/60">
+                                      {agente.partido || 'Indep.'}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── RODAPÉ DO CARD ── */}
+                  <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-white/30 font-light relative z-10">
+                    <span>Constituição de 1988</span>
+                    {isCenter ? (
+                      <span className="text-white/60 font-medium">Poder em Foco</span>
+                    ) : (
+                      <span className="text-white/30">Clique para focar</span>
+                    )}
+                  </div>
+                </motion.div>
               );
             })}
           </div>
 
-          {/* Botões Setas Anterior / Próximo */}
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handlePrev}
-              aria-label="Poder anterior"
-              className="h-8 w-8 rounded-lg flex items-center justify-center border border-white/10 bg-neutral-900/80 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              aria-label="Próximo poder"
-              className="h-8 w-8 rounded-lg flex items-center justify-center border border-white/10 bg-neutral-900/80 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* ── STAGE DO CARROSSEL: CARDS DOS 3 PODERES SOBREPOSTOS ── */}
-        <div
-          ref={carouselRef}
-          className="relative w-full h-[640px] flex items-center justify-center overflow-visible select-none"
-        >
-          {poderesFiltrados.map((poder, idx) => {
-            const meta = PODERES_META[poder.nome] || PODERES_META.EXECUTIVO;
-
-            // Cálculo do offset em relação ao card ativo
-            // Offset: 0 = ativo (frente)
-            // Offset > 0: atrás à direita
-            // Offset < 0: atrás à esquerda
-            const offset = idx - activeIndex;
-            const isCenter = offset === 0;
-
-            // Configuração física de sobreposição (Executivo sobrepõe Legislativo sobrepõe Judiciário)
-            // Se o usuário clica em um card qualquer, ele vem à frente com zIndex 30
-            let xOffset = 0;
-            let scale = 1;
-            let zIndex = 30;
-            let opacity = 1;
-            let rotateY = 0;
-
-            if (offset === 0) {
-              xOffset = 0;
-              scale = 1;
-              zIndex = 30;
-              opacity = 1;
-              rotateY = 0;
-            } else if (offset === 1 || (activeIndex === 2 && idx === 0)) {
-              // Card imediatamente à direita/atrás
-              xOffset = 90;
-              scale = 0.94;
-              zIndex = 20;
-              opacity = 0.65;
-              rotateY = -2;
-            } else if (offset === 2) {
-              // Terceiro card mais ao fundo à direita
-              xOffset = 175;
-              scale = 0.88;
-              zIndex = 10;
-              opacity = 0.45;
-              rotateY = -4;
-            } else if (offset === -1 || (activeIndex === 0 && idx === 2)) {
-              // Card imediatamente à esquerda/atrás
-              xOffset = -90;
-              scale = 0.94;
-              zIndex = 20;
-              opacity = 0.65;
-              rotateY = 2;
-            } else if (offset === -2) {
-              // Terceiro card mais ao fundo à esquerda
-              xOffset = -175;
-              scale = 0.88;
-              zIndex = 10;
-              opacity = 0.45;
-              rotateY = 4;
-            }
-
-            // Conta total de membros neste poder
-            const totalMembros = poder.instituicoes.reduce((acc, i) => acc + i.agentes.length, 0);
-
-            // Instituição atualmente selecionada no card do poder ativo
-            const instituicaoAtiva =
-              poder.instituicoes.find((i) => i.id === instituicaoSelecionada) || poder.instituicoes[0];
-
-            return (
-              <motion.div
-                key={poder.id}
-                onClick={() => mudarPoder(idx)}
-                drag={isCenter ? 'x' : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x < -40) handleNext();
-                  if (info.offset.x > 40) handlePrev();
-                }}
-                animate={{
-                  x: xOffset,
-                  scale,
-                  zIndex,
-                  opacity,
-                  rotateY,
-                }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 260,
-                  damping: 26,
-                }}
-                className={`absolute w-full max-w-[500px] h-[580px] rounded-3xl border transition-colors duration-300 flex flex-col justify-between p-6 md:p-7 overflow-hidden ${
-                  isCenter
-                    ? 'border-white/[0.14] bg-[#11131a] shadow-[0_20px_50px_rgba(0,0,0,0.85)] cursor-default'
-                    : 'border-white/[0.06] bg-[#0d0e14] shadow-[0_10px_30px_rgba(0,0,0,0.6)] cursor-pointer hover:border-white/10'
-                }`}
-                style={{
-                  transformPerspective: 1000,
-                }}
-              >
-                {/* - Imagem de fundo do poder com máscara gradiente - */}
-                <div className='absolute inset-0 pointer-events-none select-none z-0'>
-                  <img src={meta.bgImage} alt='' role='presentation' className={`w-full h-full object-cover object-center contrast-125 transition-opacity duration-500 ${isCenter ? 'opacity-45' : 'opacity-20'}`}/>
-                  <div className='absolute inset-0 bg-gradient-to-t from-[#11131a] via-[#11131a]/80 to-transparent'/>
-                </div>
-
-                {/* Linha discreta de acento de cor no topo do card (substitui o brilho excessivo) */}
-                <div
-                  className="absolute top-0 left-8 right-8 h-[2px] rounded-full"
-                  style={{ backgroundColor: meta.cor, opacity: isCenter ? 0.7 : 0.25 }}
-                />
-
-                {/* ── PARTE SUPERIOR DO CARD: TÍTULO DO PODER ── */}
-                <div className='relative z-10'>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono font-semibold tracking-wider text-white/30 uppercase">
-                        0{idx + 1} / 03
-                      </span>
-                      <span className="text-white/20">•</span>
-                      <span
-                        className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${meta.tagBorder} ${meta.tagBg} ${meta.tagText}`}
-                      >
-                        {meta.label}
-                      </span>
-                    </div>
-
-                    <span className="text-[10px] font-mono text-white/30">
-                      {totalMembros} membros
-                    </span>
-                  </div>
-
-                  {/* Nome do Poder com cor discreta */}
-                  <h3 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                    {poder.nome}
-                  </h3>
-
-                  {/* Descrição pedagógica clara e legível */}
-                  <p className="text-xs text-white/50 leading-relaxed font-light mt-2 line-clamp-3">
-                    {poder.descricao_pedagogica}
-                  </p>
-                </div>
-
-                {/* ── PARTE INTERMEDIÁRIA: ÓRGÃOS DO PODER ── */}
-                <div className="my-4 flex-1 flex flex-col min-h-0 relative z-10">
-                  <div className="flex items-center justify-between pb-2 border-b border-white/[0.06] mb-3">
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">
-                      Órgãos Constitucionais
-                    </span>
-                    <span className="text-[10px] text-white/30 font-mono">
-                      {poder.instituicoes.length} órgãos
-                    </span>
-                  </div>
-
-                  {/* Lista de Órgãos em formato de pílulas/tabs */}
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {poder.instituicoes.map((inst) => {
-                      const isInstActive = instituicaoAtiva?.id === inst.id;
-                      return (
-                        <button
-                          key={inst.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setInstituicaoSelecionada(inst.id);
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${
-                            isInstActive
-                              ? 'border-white/20 bg-white/10 text-white font-semibold'
-                              : 'border-white/5 bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/10'
-                          }`}
-                        >
-                          <span className="text-[10px] font-bold">{inst.sigla}</span>
-                          <span className="text-[9px] opacity-40 font-mono">({inst.agentes.length})</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Visão do Órgão Selecionado e seus Atores */}
-                  {instituicaoAtiva && (
-                    <div className="flex-1 rounded-2xl bg-black/40 backdrop-blur-md border border-white/[0.08] p-3.5 flex flex-col min-h-0 overflow-hidden">
-                      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/[0.04]">
-                        <div>
-                          <h4 className="text-xs font-bold text-white/90 leading-tight">
-                            {instituicaoAtiva.nome}
-                          </h4>
-                          <p className="text-[10px] text-white/40 line-clamp-1 mt-0.5">
-                            {instituicaoAtiva.descricao_pedagogica}
-                          </p>
-                        </div>
-                        {instituicaoAtiva.site_oficial && (
-                          <a
-                            href={instituicaoAtiva.site_oficial}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-[9px] text-white/30 hover:text-white/70 underline underline-offset-2 shrink-0 ml-2"
-                          >
-                            Site
-                          </a>
-                        )}
-                      </div>
-
-                      {/* Lista de Atores Políticos do Órgão */}
-                      <div className="flex-1 overflow-y-auto pr-1 space-y-1.5">
-                        {instituicaoAtiva.agentes.length === 0 ? (
-                          <p className="text-[10px] text-white/30 italic text-center py-4">
-                            Nenhum agente para os filtros ativos.
-                          </p>
-                        ) : (
-                          instituicaoAtiva.agentes.map((agente) => {
-                            const fotoUrl = formatarFotoUrl(agente.foto_url);
-                            return (
-                              <div
-                                key={agente.id}
-                                className="flex items-center justify-between gap-2.5 p-2 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors"
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  {fotoUrl ? (
-                                    <img
-                                      src={fotoUrl}
-                                      alt={agente.nome_completo}
-                                      className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/10"
-                                      loading="lazy"
-                                    />
-                                  ) : (
-                                    <div
-                                      className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                                      style={{ backgroundColor: `${meta.cor}33` }}
-                                    >
-                                      {agente.nome_completo.charAt(0)}
-                                    </div>
-                                  )}
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-semibold text-white/90 truncate leading-tight">
-                                      {agente.nome_eleitoral || agente.nome_completo}
-                                    </p>
-                                    <p className="text-[10px] text-white/35 truncate">
-                                      {agente.cargo}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="shrink-0 text-right">
-                                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/5 text-white/60">
-                                    {agente.partido || 'Indep.'}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* ── RODAPÉ DO CARD ── */}
-                <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-white/30 font-light relative z-10">
-                  <span>Constituição de 1988</span>
-                  {isCenter ? (
-                    <span className="text-white/60 font-medium">Poder em Foco</span>
-                  ) : (
-                    <span className="text-white/30">Clique para focar</span>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Indicador de cards na base */}
-        <div className="flex items-center justify-center gap-2 mt-4">
-          {poderesFiltrados.map((poder, i) => (
-            <button
-              key={poder.id}
-              type="button"
-              onClick={() => mudarPoder(i)}
-              aria-label={`Ir para ${poder.nome}`}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === activeIndex ? 'w-8 bg-white/70' : 'w-2 bg-white/15 hover:bg-white/30'
-              }`}
-            />
-          ))}
+         
         </div>
       </main>
     </div>
