@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { politicsService } from './services/api';
 import type { Poder } from './types/politics';
+import { Link } from 'react-router-dom';
 
 // Helper para normalizar URLs de fotos vindas do backend/public
 function formatarFotoUrl(url?: string | null): string | null {
@@ -170,13 +171,22 @@ function App() {
     );
   }
 
+  // Poder atualmente em foco e seus metadados (para o fundo imersivo global)
+  const poderAtivo = poderesFiltrados[activeIndex];
+  const metaAtivo = poderAtivo ? (PODERES_META[poderAtivo.nome] || PODERES_META.EXECUTIVO) : PODERES_META.EXECUTIVO;
+
   return (
-    <div className="min-h-screen bg-[#090a0f] text-white overflow-x-hidden selection:bg-white/10">
-      {/* Grade de fundo discreta e estática (sem neons) */}
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
+    <div className="min-h-screen bg-[#090a0f] text-white overflow-x-hidden selection:bg-white/10 relative">
+
+      {/* - Ambiente de fundo global dinâmico (troca conforme o poder em foco) - */}
+      <div className='fixed inset-0 pointer-events-none select-none overflow-hidden z-0'>
+        <AnimatePresence>
+          <motion.img key={metaAtivo.bgImage} src={metaAtivo.bgImage} alt='' role='presentation' initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 0.22, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.2, ease: 'easeOut' }} className='absolute inset-0 w-full h-full object-cover object-center' />
+        </AnimatePresence>
+      </div>
 
       {/* ── HEADER DISCRETO ───────────────────────────────── */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#090a0f]/80 backdrop-blur-xl">
+      <header className="fixed top-1 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
           {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
@@ -191,6 +201,8 @@ function App() {
             </div>
           </div>
 
+          <Link className='border-0 border-b border-white/20 text-xs text-white/70 hover:border-white/40 hover:text-white focus:outline-none focus:border-white' to=''>Home</Link>
+          <Link className='border-0 border-b border-white/20 text-xs text-white/70 hover:border-white/40 hover:text-white focus:outline-none focus:border-white' to=''>Livros</Link>
           {/* Filtros */}
           <div className="flex items-center gap-2.5 w-full max-w-sm">
             <div className="relative flex-1">
@@ -199,7 +211,7 @@ function App() {
                 placeholder="Buscar agente ou cargo..."
                 value={termoBusca}
                 onChange={(e) => setTermoBusca(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-neutral-900/80 border border-white/[0.08] rounded-lg text-xs text-white placeholder-white/25 focus:outline-none focus:border-white/20 transition-colors"
+                className="w-full pl-8 pr-3 py-1.5 bg-transparent border-0 border-b border-white/20 rounded-none text-xs text-white placeholder-white/25 focus:outline-none focus:border-white/20 transition-colors"
               />
               <svg
                 className="w-3.5 h-3.5 text-white/30 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -214,7 +226,7 @@ function App() {
             <select
               value={partidoSelecionado}
               onChange={(e) => setPartidoSelecionado(e.target.value)}
-              className="px-2.5 py-1.5 bg-neutral-900 border border-white/[0.08] rounded-lg text-xs text-white/60 focus:outline-none focus:border-white/20 transition-colors cursor-pointer"
+              className="appearance-none px-1 py-1.5 bg-transparent border-0 border-b border-white/20 rounded-none text-xs text-white/70 hover:border-white/40 hover:text-white focus:outline-none focus:border-white transition-colors cursor-pointer [&>option]:bg-neutral-900 [&>option]:text-white"
             >
               <option value="">Todos Partidos</option>
               {listaPartidos.map((p) => (
@@ -336,8 +348,8 @@ function App() {
                     damping: 26,
                   }}
                   className={`absolute w-full max-w-[440px] h-[580px] rounded-3xl border transition-colors duration-300 flex flex-col justify-between p-6 md:p-7 overflow-hidden ${isCenter
-                      ? 'border-white/[0.14] bg-[#11131a] shadow-[0_20px_50px_rgba(0,0,0,0.85)] cursor-default'
-                      : 'border-white/[0.06] bg-[#0d0e14] shadow-[0_10px_30px_rgba(0,0,0,0.6)] cursor-pointer hover:border-white/10'
+                    ? 'border-white/[0.14] bg-[#11131a] shadow-[0_20px_50px_rgba(0,0,0,0.85)] cursor-default'
+                    : 'border-white/[0.06] bg-[#0d0e14] shadow-[0_10px_30px_rgba(0,0,0,0.6)] cursor-pointer hover:border-white/10'
                     }`}
                   style={{
                     transformPerspective: 1000,
@@ -410,8 +422,8 @@ function App() {
                               setInstituicaoSelecionada(inst.id);
                             }}
                             className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors flex items-center gap-1.5 ${isInstActive
-                                ? 'border-white/20 bg-white/10 text-white font-semibold'
-                                : 'border-white/5 bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/10'
+                              ? 'border-white/20 bg-white/10 text-white font-semibold'
+                              : 'border-white/5 bg-white/[0.02] text-white/40 hover:text-white/70 hover:border-white/10'
                               }`}
                           >
                             <span className="text-[10px] font-bold">{inst.sigla}</span>
@@ -514,7 +526,7 @@ function App() {
             })}
           </div>
 
-         
+
         </div>
       </main>
     </div>
